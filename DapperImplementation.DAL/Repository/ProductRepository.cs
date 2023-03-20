@@ -16,10 +16,15 @@ namespace DapperImplementation.DAL.Repository
         public async Task<IEnumerable<Product>> GetAll()
         {
             using var conn = _connectionFactory.GetConnection;
-            var query = "SELECT * FROM SalesLT.Product";
-            var data = await conn.QueryAsync<Product>(query, commandType: CommandType.Text);
-            return data.ToList();
-
+           var query = @"SELECT * FROM SalesLT.Product p
+                        inner join SalesLT.ProductCategory pc on pc.ProductCategoryID = p.ProductCategoryID
+                        inner join SalesLT.ProductModel pm on p.ProductModelID = pm.ProductModelID";
+            var data = await conn.QueryAsync<Product, ProductCategory, ProductModel, Product>(query, (product, category, model) => {
+                product.ProductCategory = category;
+                product.ProductModel = model;
+                return product;
+            }, splitOn: "ProductCategoryID,ProductModelID", commandType: CommandType.Text);
+            return data.AsEnumerable();
         }
 
         public async Task<Product> GetById(int id)
