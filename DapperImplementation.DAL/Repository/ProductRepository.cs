@@ -58,5 +58,17 @@ namespace DapperImplementation.DAL.Repository
                 return product;
             }
         }
+
+        // Executing stored procedure
+        public async Task<IEnumerable<Product>> GetByIdUsingStoredProcedure(int id)
+        {
+            using var conn = _connectionFactory.GetConnection;
+            var query = @"usp_GetDataFromSp";
+            var param = new DynamicParameters();
+            param.Add("@id", id);
+            var data = await conn.QueryAsync<Product>(query, param,
+                commandType: CommandType.StoredProcedure);
+            return data;
+        }
     }
 }
