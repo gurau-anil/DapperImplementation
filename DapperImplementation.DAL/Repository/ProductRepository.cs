@@ -13,6 +13,10 @@ namespace DapperImplementation.DAL.Repository
         {
             _connectionFactory = connectionFactory;
         }
+
+        //Mapping single row to multiple objects
+        //Dapper split's the returned row by making an assumption that Id columns are named Id or id.
+        //If the primary key is different or want split the row at a point other than Id, use the optional splitOn parameter.
         public async Task<IEnumerable<Product>> GetAll()
         {
             using var conn = _connectionFactory.GetConnection;
@@ -27,15 +31,32 @@ namespace DapperImplementation.DAL.Repository
             return data.AsEnumerable();
         }
 
+        //public async Task<Product> GetById(int id)
+        //{
+        //    using var conn = _connectionFactory.GetConnection;
+        //    var query = "SELECT * FROM SalesLT.Product WHERE ProductID = @id";
+        //    var param = new DynamicParameters();
+        //    param.Add("@id", id);
+        //    var data = await conn.QueryFirstOrDefaultAsync<Product>(query, param,
+        //        commandType: CommandType.Text);
+        //    return data;
+        //}
+
+        // Multiple Result
+        // Dapper allows to process multiple result grids in a single query.
         public async Task<Product> GetById(int id)
         {
             using var conn = _connectionFactory.GetConnection;
-            var query = "SELECT * FROM SalesLT.Product WHERE ProductID = @id";
+            var query = @"SELECT * FROM SalesLT.Product WHERE ProductID = @id
+                            SELECT * FROM SalesLT.SalesOrderDetail WHERE ProductID = @id";
             var param = new DynamicParameters();
             param.Add("@id", id);
-            var data = await conn.QueryFirstOrDefaultAsync<Product>(query, param,
-                commandType: CommandType.Text);
-            return data;
+            using (var multi = await conn.QueryMultipleAsync(query, param))
+            {
+                var product = multi.Read<Product>().FirstOrDefault();
+                var orders = multi.Read<SalesOrderDetail>().ToList();
+                return product;
+            }
         }
     }
 }
