@@ -95,5 +95,24 @@ namespace DapperImplementation.DAL.Repository
             }
                 
         }
+
+        // Executing stored procedure -- passing table valued parameter
+        public async Task FakeMethodTableValuedParameter()
+        {
+            using var conn = _connectionFactory.GetConnection;
+            // this stored procedure has not been created yet (this is used here just for testing purpose)
+            var query = @"usp_GetDataFromSp";
+            var param = new DynamicParameters();
+            DataTable dt = new DataTable();
+            dt.Columns.Add("ColumnName", typeof(int));
+            dt.Columns.Add("ColumnName1", typeof(string));
+
+            dt.Rows.Add(1, "test");
+            dt.Rows.Add(2, "test2");
+
+            param.Add("@tableValuedParam", dt.AsTableValuedParameter());
+            var data = await conn.QueryAsync(query, param,
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }
