@@ -31,16 +31,18 @@ namespace DapperImplementation.DAL.Repository
             return data.AsEnumerable();
         }
 
-        //public async Task<Product> GetById(int id)
-        //{
-        //    using var conn = _connectionFactory.GetConnection;
-        //    var query = "SELECT * FROM SalesLT.Product WHERE ProductID = @id";
-        //    var param = new DynamicParameters();
-        //    param.Add("@id", id);
-        //    var data = await conn.QueryFirstOrDefaultAsync<Product>(query, param,
-        //        commandType: CommandType.Text);
-        //    return data;
-        //}
+
+        //this Method is doesn't have declaration in the interface (just here for testing purpose)
+        public async Task<Product> GetByProductModelId(int productModelId)
+        {
+            using var conn = _connectionFactory.GetConnection;
+            var query = "SELECT * FROM SalesLT.Product WHERE ProductModelId = @productModelId";
+            var param = new DynamicParameters();
+            param.Add("@productModelId", productModelId);
+            var data = await conn.QueryFirstOrDefaultAsync<Product>(query, param,
+                commandType: CommandType.Text);
+            return data;
+        }
 
         // Multiple Result
         // Dapper allows to process multiple result grids in a single query.
@@ -63,12 +65,12 @@ namespace DapperImplementation.DAL.Repository
         public async Task<IEnumerable<Product>> GetByIdUsingStoredProcedure(int id)
         {
             using var conn = _connectionFactory.GetConnection;
+            // this stored procedure has not been created yet (this is used here just for testing purpose)
             var query = @"usp_GetDataFromSp";
             var param = new DynamicParameters();
             param.Add("@id", id);
             var data = await conn.QueryAsync<Product>(query, param,
                 commandType: CommandType.StoredProcedure);
             return data;
-        }
-    }
+        }    }
 }
