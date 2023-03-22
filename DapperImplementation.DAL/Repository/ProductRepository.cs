@@ -72,5 +72,28 @@ namespace DapperImplementation.DAL.Repository
             var data = await conn.QueryAsync<Product>(query, param,
                 commandType: CommandType.StoredProcedure);
             return data;
-        }    }
+        }
+
+        // Using transaction
+        // This method is not present in the IProductRepository, it has to have declaration in IProductRepository interface in order to use it using dependency injection.
+        // This method is created just for testing purpose
+        public async Task FakeMethod(Product product)
+        {
+            using var conn = _connectionFactory.GetConnection;
+            using (var transaction = await conn.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Execute your queries here
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+                
+        }
+    }
 }
